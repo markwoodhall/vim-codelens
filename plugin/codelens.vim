@@ -61,6 +61,7 @@ function! codelens#lens()
 
   let num = 1
   for line in getline(1, line('$'))
+    call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
     if line =~ b:codelens_target
       let s:callbacks = {
       \ 'on_stdout': function('s:ProcessGitLog')
@@ -85,9 +86,14 @@ augroup codelens
   autocmd!
   autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest' | endif
   autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest' | endif
+
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = 'function!' | endif
   autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!' | endif
- " autocmd BufEnter * if g:codelens_auto == 1 && exists('b:codelens_target') | silent! call codelens#lens() | endif
-  autocmd filetype * command! -buffer Codelens :exe codelens#lens()
+
+  autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') | silent! call codelens#lens() | endif
+  autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') | silent! call codelens#lens() | endif
+
+  autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
+  autocmd filetype * command! -buffer Codelens :call codelens#lens()
 augroup END
 
