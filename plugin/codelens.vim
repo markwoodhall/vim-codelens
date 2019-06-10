@@ -36,18 +36,18 @@ function! s:ProcessGitLog(job_id, data, event) dict
       endfor
 
       let author_count = len(s:unique(named_authors)) - 1
-      let latest_author_and_date = split(parts[1], 'Author:')[0] 
+      let latest_author_and_date = split(parts[1], 'Author:')[0]
       let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
       let date = split(latest_author_and_date, 'Date:')[1]
-      let message = trim(date) . ' by ' . trim(author) 
+      let message = trim(date) . ' by ' . trim(author)
       if author_count == 1
-        let message = message . ' and 1 other' 
+        let message = message . ' and 1 other'
       elseif author_count > 1
-        let message = message . ' and ' . author_count . ' others' 
+        let message = message . ' and ' . author_count . ' others'
       endif
 
       let line = parts[0]
-  
+
       if getline(line) =~ b:codelens_target
         if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
           silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'Comment']], {})
@@ -74,7 +74,7 @@ function! codelens#lens()
       for end_line in getline(num_end_line, line('$'))
         if end_line =~ b:codelens_scope_end
           let num_end_line = num_end_line - 2
-          break 
+          break
         endif
         let num_end_line = num_end_line +  1
       endfor
@@ -86,7 +86,7 @@ function! codelens#lens()
 endfunction
 
 function! s:should_bind()
-  let status = system('git status') 
+  let status = system('git status')
   return status !~ 'fatal: not a git repository'
 endfunction
 
