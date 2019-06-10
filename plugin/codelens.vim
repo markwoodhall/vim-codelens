@@ -4,7 +4,10 @@ endif
 
 let g:loaded_codelens = 1
 let g:codelens_namespace = nvim_create_namespace('codelens')
-let g:codelens_auto = 1
+
+if !exists('g:codelens_auto')
+  let g:codelens_auto = 0
+endif
 
 function! s:unique(list) abort
     let seen = {}
