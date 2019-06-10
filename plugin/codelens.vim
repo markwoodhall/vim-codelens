@@ -34,7 +34,7 @@ function! s:ProcessGitLog(job_id, data, event) dict
 
       let author_count = len(s:unique(named_authors)) - 1
       let latest_author_and_date = split(parts[1], 'Author:')[0] 
-      let author = split(latest_author_and_date, 'Date:')[0]
+      let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
       let date = split(latest_author_and_date, 'Date:')[1]
       let message = trim(date) . ' by ' . trim(author) 
       if author_count == 1
