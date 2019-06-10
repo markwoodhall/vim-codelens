@@ -92,8 +92,8 @@ endfunction
 
 augroup codelens
   autocmd!
-  autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest' | endif
-  autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest' | endif
+  autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
+  autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
 
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = 'function!' | endif
   autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!' | endif
