@@ -22,7 +22,7 @@ function! s:unique(list) abort
     return uniques
 endfunction
 
-function! s:ProcessGitLog(job_id, data, event) dict
+function! s:process_git_log(job_id, data, event) dict
   if a:event == 'stdout'
     let data = a:data[0:-2]
     if len(data) >= 1
@@ -67,7 +67,7 @@ function! codelens#lens()
     call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
     if line =~ b:codelens_target
       let s:callbacks = {
-      \ 'on_stdout': function('s:ProcessGitLog')
+      \ 'on_stdout': function('s:process_git_log')
       \ }
 
       let num_end_line = num + 1
