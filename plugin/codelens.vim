@@ -85,6 +85,11 @@ function! codelens#lens()
   endfor
 endfunction
 
+function! s:should_bind()
+  let status = system('git status') 
+  return status !~ 'fatal: not a git repository'
+endfunction
+
 augroup codelens
   autocmd!
   autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest' | endif
@@ -93,8 +98,8 @@ augroup codelens
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = 'function!' | endif
   autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!' | endif
 
-  autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') | silent! call codelens#lens() | endif
-  autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') | silent! call codelens#lens() | endif
+  autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
+  autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens()
