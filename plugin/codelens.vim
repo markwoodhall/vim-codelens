@@ -27,32 +27,34 @@ function! s:process_git_log(job_id, data, event) dict
     let data = a:data[0:-2]
     if len(data) >= 1
       let parts = split(data[0], '#')
-      let authors = split(parts[1], 'Author:')
+      if len(parts) > 1
+        let authors = split(parts[1], 'Author:')
 
-      let named_authors = []
-      for a in authors
-        let auth = split(a, 'Date:')[0]
-        let named_authors += [trim(auth)]
-      endfor
+        let named_authors = []
+        for a in authors
+          let auth = split(a, 'Date:')[0]
+          let named_authors += [trim(auth)]
+        endfor
 
-      let author_count = len(s:unique(named_authors)) - 1
-      let latest_author_and_date = split(parts[1], 'Author:')[0]
-      let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
-      let date = split(latest_author_and_date, 'Date:')[1]
-      let message = trim(date) . ' by ' . trim(author)
-      if author_count == 1
-        let message = message . ' and 1 other'
-      elseif author_count > 1
-        let message = message . ' and ' . author_count . ' others'
-      endif
+        let author_count = len(s:unique(named_authors)) - 1
+        let latest_author_and_date = split(parts[1], 'Author:')[0]
+        let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
+        let date = split(latest_author_and_date, 'Date:')[1]
+        let message = trim(date) . ' by ' . trim(author)
+        if author_count == 1
+          let message = message . ' and 1 other'
+        elseif author_count > 1
+          let message = message . ' and ' . author_count . ' others'
+        endif
 
-      let line = parts[0]
+        let line = parts[0]
 
-      if getline(line) =~ b:codelens_target
-        if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
-          silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'Comment']], {})
-        else
-          silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'Comment']], {})
+        if getline(line) =~ b:codelens_target
+          if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
+            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'Comment']], {})
+          else
+            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'Comment']], {})
+          endif
         endif
       endif
     endif
