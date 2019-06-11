@@ -9,6 +9,10 @@ if !exists('g:codelens_auto')
   let g:codelens_auto = 0
 endif
 
+if !exists('g:codelens_show_references')
+  let g:codelens_show_references = 1
+endif
+
 function! s:unique(list) abort
     let seen = {}
     let uniques = []
@@ -37,14 +41,28 @@ function! s:process_git_log(job_id, data, event) dict
         endfor
 
         let author_count = len(s:unique(named_authors)) - 1
-        let latest_author_and_date = split(parts[1], 'Author:')[0]
-        let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
-        let date = split(latest_author_and_date, 'Date:')[1]
-        let message = trim(date) . ' by ' . trim(author)
-        if author_count == 1
-          let message = message . ' and 1 other'
-        elseif author_count > 1
-          let message = message . ' and ' . author_count . ' others'
+
+        let message = ''
+        if len(authors) > 0
+          let latest_author_and_date = authors[0]
+          let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
+          let date = split(latest_author_and_date, 'Date:')[1]
+          let message = trim(date) . ' by ' . trim(author)
+
+          if author_count == 1
+            let message = message . ' and 1 other,'
+          elseif author_count > 1
+            let message = message . ' and ' . author_count . ' others,'
+          endif
+
+          if g:codelens_show_references == 1
+            let references = parts[2]
+            if references > 1
+              let message = message . ' ' . references . ' references' 
+            elseif references == 1
+              let message = message . ' ' . references . ' reference' 
+            endif
+          endif
         endif
 
         let line = parts[0]
@@ -70,6 +88,7 @@ function! codelens#lens()
       let s:callbacks = {
       \ 'on_stdout': function('s:process_git_log')
       \ }
+      let func = split(line, ' ')[1]
 
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
@@ -79,7 +98,7 @@ function! codelens#lens()
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:");'
+      let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:")#$(git grep "'.func.'" | wc -l);'
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
@@ -97,11 +116,10 @@ augroup codelens
   autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
 
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function!\|^augroup' | endif
-  autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!' | endif
+  autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!\|\(augroup\s\)\(END\)\@!' | endif
 
   autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
   autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens()
-augroup END
