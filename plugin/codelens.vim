@@ -61,10 +61,9 @@ endfunction
 
 function! codelens#lens()
   let filename = expand('%')
-
+  call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   let num = 1
   for line in getline(1, line('$'))
-    call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
     if line =~ b:codelens_target
       let s:callbacks = {
       \ 'on_stdout': function('s:process_git_log')
@@ -76,7 +75,7 @@ function! codelens#lens()
           let num_end_line = num_end_line - 2
           break
         endif
-        let num_end_line = num_end_line +  1
+        let num_end_line = num_end_line + 1
       endfor
       let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:");'
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
