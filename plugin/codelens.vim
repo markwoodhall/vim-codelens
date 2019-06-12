@@ -83,19 +83,19 @@ function! s:process_git_log(job_id, data, event) dict
           let message = trim(date) . ' by ' . trim(author)
 
           if author_count == 1
-            let message = message . ' and 1 other,'
+            let message = message . ' and 1 other'
           elseif author_count > 1
-            let message = message . ' and ' . author_count . ' others,'
-          elseif author_count < 1
-            let message = message . ','
+            let message = message . ' and ' . author_count . ' others'
           endif
 
           if g:codelens_show_references == 1
-            let references = parts[2]
-            if references > 1
-              let message = message . ' ' . references . ' references' 
-            elseif references == 1
-              let message = message . ' ' . references . ' reference' 
+            if exists('b:codelens_func')
+              let references = parts[2]
+              if references > 1
+                let message = message . ', ' . references . ' references' 
+              elseif references == 1
+                let message = message . ', ' . references . ' reference' 
+              endif
             endif
           endif
         endif
@@ -123,9 +123,6 @@ function! codelens#lens()
       let s:callbacks = {
       \ 'on_stdout': function('s:process_git_log')
       \ }
-      let func = trim(matchstr(line, b:codelens_func))
-      let clean_line = substitute(line, '[', '\\[', 'g')
-      let clean_line = substitute(clean_line, ']', '\\]', 'g')
 
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
@@ -135,7 +132,17 @@ function! codelens#lens()
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = 'echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+ ago\)/\nDate: \1/")#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l);'
+      let cmd = 'echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+ ago\)/\nDate: \1/")'
+
+      if exists('b:codelens_func')
+        let func = trim(matchstr(line, b:codelens_func))
+
+        let clean_line = substitute(line, '[', '\\[', 'g')
+        let clean_line = substitute(clean_line, ']', '\\]', 'g')
+
+        let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l);'
+      endif
+
       echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
@@ -161,6 +168,9 @@ augroup codelens
   autocmd filetype javascript if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_target') | let b:codelens_target = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\w\{1,}' | endif
+
+  autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource' | endif
+  autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource' | endif
 
   autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
   autocmd BufWritePost * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
