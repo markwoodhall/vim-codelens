@@ -13,30 +13,41 @@ if !exists('g:codelens_show_references')
   let g:codelens_show_references = 1
 endif
 
-if !exists('g:codelens_author_strategy')
-  let g:codelens_author_strategy = 'prolific'
-endif
 
-function! s:most_prolific(list) abort
-  let prolific = ''
-  let seen = {}
+function! s:unit_distance(unit) abort
+  if a:unit == 'years'
+    return 8
+  elseif a:unit == 'months'
+    return 7
+  elseif a:unit == 'weeks'
+    return 6
+  elseif a:unit == 'days'
+    return 5
+  elseif a:unit == 'hours'
+    return 4
+  elseif a:unit == 'minutes'
+    return 3
+  elseif a:unit == 'seconds'
+    return 2
+  endif
+endfunction
+
+function! s:most_recent(list) abort
+  let recent = ''
+  let last_score = 999
   for e in a:list
-    let auth = split(e, 'Date:')[0]
-    let auth = trim(auth)
-    if !has_key(seen, auth)
-      let seen[auth] = 1
-    else
-      let seen[auth] = seen[auth] + 1
+    let date = split(e, 'Date:')[1]
+    let date = trim(date)
+    let number = split(date, ' ')[0]
+    let unit = split(date, ' ')[1]
+    let unit_distance = s:unit_distance(unit)
+    let score = number + unit_distance
+    if score < last_score
+      let last_score = score
+      let recent = join(split(date, ' ')[0:2], ' ') . ' by ' . trim(split(e, 'Date:')[0])
     endif
   endfor
-  let last_value = 0
-  for [key, value] in items(seen)
-    if value > last_value
-      let last_value = value
-      let prolific = key
-    endif
-  endfor
-  return prolific
+  return recent
 endfunction
 
 function! s:unique(list) abort
@@ -71,16 +82,9 @@ function! s:process_git_log(job_id, data, event) dict
         let message = ''
         if len(authors) > 0
 
-          let latest_author_and_date = authors[0]
+          let author = s:most_recent(authors)
 
-          let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
-
-          if g:codelens_author_strategy == 'prolific'
-            let author = s:most_prolific(authors)
-          endif
-
-          let date = split(parts[-1], 'Date:')[0]
-          let message = trim(date) . ' by ' . trim(author)
+          let message = author
 
           if author_count == 1
             let message = message . ' and 1 other'
@@ -143,7 +147,6 @@ function! codelens#lens()
         let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l)'
       endif
 
-      let cmd = cmd . '#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch --no-notes | grep "Date:" --max-count 1)'
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
