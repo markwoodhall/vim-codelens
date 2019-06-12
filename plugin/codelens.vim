@@ -88,7 +88,7 @@ function! codelens#lens()
       let s:callbacks = {
       \ 'on_stdout': function('s:process_git_log')
       \ }
-      let func = split(line, ' ')[1]
+      let func = matchstr(line, b:codelens_func)
 
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
@@ -114,12 +114,15 @@ augroup codelens
   autocmd!
   autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
   autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
+  autocmd filetype clojure if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}.*\s' | endif
 
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function!\|^augroup' | endif
   autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!\|\(augroup\s\)\(END\)\@!' | endif
+  autocmd filetype vim if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}.*(' | endif
 
   autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
   autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens()
+augroup END
