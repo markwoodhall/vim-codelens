@@ -144,7 +144,6 @@ function! codelens#lens()
       endif
 
       let cmd = cmd . '#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch --no-notes | grep "Date:" --max-count 1)'
-      echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
