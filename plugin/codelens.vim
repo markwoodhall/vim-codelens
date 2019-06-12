@@ -88,7 +88,7 @@ function! codelens#lens()
       let s:callbacks = {
       \ 'on_stdout': function('s:process_git_log')
       \ }
-      let func = matchstr(line, b:codelens_func)
+      let func = trim(matchstr(line, b:codelens_func))
 
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
@@ -98,7 +98,8 @@ function! codelens#lens()
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:")#$(git grep "'.func.'" | wc -l);'
+      let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:")#$(git grep --not -e "'.line.'" --and -e "'.func.'" | wc -l);'
+      echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
@@ -114,11 +115,11 @@ augroup codelens
   autocmd!
   autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
   autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
-  autocmd filetype clojure if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}.*\s' | endif
+  autocmd filetype clojure if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function!\|^augroup' | endif
   autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!\|\(augroup\s\)\(END\)\@!' | endif
-  autocmd filetype vim if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}.*(' | endif
+  autocmd filetype vim if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\W\{1,}\w\{1,}' | endif
 
   autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
   autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
