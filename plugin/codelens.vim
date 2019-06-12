@@ -99,7 +99,7 @@ function! codelens#lens()
         let num_end_line = num_end_line + 1
       endfor
       let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:")#$(git grep --not -e "'.line.'" --and -e "'.func.'" | wc -l);'
-      echomsg cmd
+      "echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
