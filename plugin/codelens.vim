@@ -13,7 +13,6 @@ if !exists('g:codelens_show_references')
   let g:codelens_show_references = 1
 endif
 
-
 function! s:unit_distance(unit) abort
   if a:unit == 'years'
     return 8
