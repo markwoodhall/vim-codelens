@@ -13,17 +13,43 @@ if !exists('g:codelens_show_references')
   let g:codelens_show_references = 1
 endif
 
+if !exists('g:codelens_author_strategy')
+  let g:codelens_author_strategy = 'prolific'
+endif
+
+function! s:most_prolific(list) abort
+  let prolific = ''
+  let seen = {}
+  for e in a:list
+    let auth = split(e, 'Date:')[0]
+    let auth = trim(auth)
+    if !has_key(seen, auth)
+      let seen[auth] = 1
+    else
+      let seen[auth] = seen[auth] + 1
+    endif
+  endfor
+  let last_value = 0
+  for [key, value] in items(seen)
+    if value > last_value
+      let last_value = value
+      let prolific = key
+    endif
+  endfor
+  return prolific
+endfunction
+
 function! s:unique(list) abort
-    let seen = {}
-    let uniques = []
-    for e in a:list
-        let k = string(e)
-        if !has_key(seen, k)
-            let seen[k] = 1
-            call add(uniques, e)
-        endif
-    endfor
-    return uniques
+  let seen = {}
+  let uniques = []
+  for e in a:list
+    let k = string(e)
+    if !has_key(seen, k)
+      let seen[k] = 1
+      call add(uniques, e)
+    endif
+  endfor
+  return uniques
 endfunction
 
 function! s:process_git_log(job_id, data, event) dict
@@ -44,15 +70,24 @@ function! s:process_git_log(job_id, data, event) dict
 
         let message = ''
         if len(authors) > 0
+
           let latest_author_and_date = authors[0]
+
           let author = split(split(latest_author_and_date, 'Date:')[0], '<')[0]
-          let date = split(latest_author_and_date, 'Date:')[1]
+
+          if g:codelens_author_strategy == 'prolific'
+            let author = s:most_prolific(authors)
+          endif
+
+          let date = join(split(split(latest_author_and_date, 'Date:')[1], ' ')[0:-2], ' ')
           let message = trim(date) . ' by ' . trim(author)
 
           if author_count == 1
             let message = message . ' and 1 other,'
           elseif author_count > 1
             let message = message . ' and ' . author_count . ' others,'
+          elseif author_count < 1
+            let message = message . ','
           endif
 
           if g:codelens_show_references == 1
@@ -89,6 +124,8 @@ function! codelens#lens()
       \ 'on_stdout': function('s:process_git_log')
       \ }
       let func = trim(matchstr(line, b:codelens_func))
+      let clean_line = substitute(line, '[', '\\[', 'g')
+      let clean_line = substitute(clean_line, ']', '\\]', 'g')
 
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
@@ -98,8 +135,8 @@ function! codelens#lens()
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = 'echo "' . num . '"#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch | grep "^Author:\|^Date:")#$(git grep --not -e "'.line.'" --and -e "'.func.'" | wc -l);'
-      "echomsg cmd
+      let cmd = 'echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+ ago\)/\nDate: \1/")#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l);'
+      echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
@@ -126,7 +163,7 @@ augroup codelens
   autocmd filetype javascript if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\w\{1,}' | endif
 
   autocmd BufRead * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
-  autocmd BufWrite * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
+  autocmd BufWritePost * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens() | endif
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens()
