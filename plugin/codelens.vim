@@ -79,7 +79,7 @@ function! s:process_git_log(job_id, data, event) dict
             let author = s:most_prolific(authors)
           endif
 
-          let date = join(split(split(latest_author_and_date, 'Date:')[1], ' ')[0:-2], ' ')
+          let date = split(parts[-1], 'Date:')[0]
           let message = trim(date) . ' by ' . trim(author)
 
           if author_count == 1
@@ -140,9 +140,11 @@ function! codelens#lens()
         let clean_line = substitute(line, '[', '\\[', 'g')
         let clean_line = substitute(clean_line, ']', '\\]', 'g')
 
-        let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l);'
+        let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l)'
       endif
 
+      let cmd = cmd . '#$(git log -L ' . num . ',' . num_end_line . ':' . filename . ' --date=relative --no-patch --no-notes | grep "Date:" --max-count 1)'
+      echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
