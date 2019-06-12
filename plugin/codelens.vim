@@ -143,7 +143,6 @@ function! codelens#lens()
         let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l);'
       endif
 
-      echomsg cmd
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
     endif
     let num = num + 1
