@@ -37,13 +37,19 @@ function! s:most_recent(list) abort
   for e in a:list
     let date = split(e, 'Date:')[1]
     let date = trim(date)
-    let number = split(date, ' ')[0]
-    let unit = split(date, ' ')[1]
-    let unit_distance = s:unit_distance(unit)
-    let score = number + unit_distance
+    let parts = split(date, ',')
+    let score = 0
+
+    for p in parts
+      let number = split(p, ' ')[0]
+      let unit = split(p, ' ')[1]
+      let unit_distance = s:unit_distance(unit)
+      let score = score + number + unit_distance
+    endfor
+
     if score < last_score
       let last_score = score
-      let recent = join(split(date, ' ')[0:2], ' ') . ' by ' . trim(split(e, 'Date:')[0])
+      let recent = join(split(date, ' ')[0:-2], ' ') . ' by ' . trim(split(e, 'Date:')[0])
     endif
   endfor
   return recent
