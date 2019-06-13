@@ -13,6 +13,10 @@ if !exists('g:codelens_show_references')
   let g:codelens_show_references = 1
 endif
 
+if !exists('g:codelens_show_tests')
+  let g:codelens_show_tests = 1
+endif
+
 function! s:unit_distance(unit) abort
   if a:unit == 'years'
     return 8
@@ -108,6 +112,17 @@ function! s:process_git_log(job_id, data, event) dict
               endif
             endif
           endif
+
+          if g:codelens_show_tests == 1
+            if exists('b:codelens_func')
+              let tests = parts[3]
+              if tests > 1
+                let message = message . ', ' . tests . ' tests' 
+              elseif tests == 1
+                let message = message . ', ' . tests . ' test' 
+              endif
+            endif
+          endif
         endif
 
         let line = parts[0]
@@ -143,7 +158,7 @@ function! codelens#lens()
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = 'username=$(git config user.name);echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+ ago\)/\nDate: \1/" | sed "s/Not Committed Yet/$username*/")'
+      let cmd = 'username=$(git config user.name);echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+.* ago\)/\nDate: \1/" | sed "s/Not Committed Yet/$username*/")'
 
       if exists('b:codelens_func')
         let func = trim(matchstr(line, b:codelens_func))
@@ -151,7 +166,13 @@ function! codelens#lens()
         let clean_line = substitute(line, '[', '\\[', 'g')
         let clean_line = substitute(clean_line, ']', '\\]', 'g')
 
-        let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l)'
+        if g:codelens_show_references == 1
+          let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l)'
+        endif
+
+        if g:codelens_show_tests == 1
+          let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | grep "test/\|tests/" | wc -l)'
+        endif
       endif
 
       let gitlogjob = jobstart(['bash', '-c', cmd], extend({'shell': 'shell 1'}, s:callbacks))
