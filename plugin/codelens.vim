@@ -171,6 +171,10 @@ augroup codelens
   autocmd filetype javascript if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_target') | let b:codelens_target = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\w\{1,}' | endif
+  
+  autocmd filetype sql if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '--\s:name' | endif
+  autocmd filetype sql if !exists('b:codelens_target') | let b:codelens_target = '--\s:name' | endif
+  autocmd filetype sql if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
   autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource' | endif
   autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource' | endif
