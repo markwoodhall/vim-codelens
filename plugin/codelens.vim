@@ -67,6 +67,7 @@ function! s:process_git_log(job_id, data, event) dict
     let data = a:data[0:-2]
     if len(data) >= 1
       let parts = split(data[0], '#')
+
       if len(parts) > 1
         let authors = split(parts[1], 'Author:')
 
@@ -135,7 +136,7 @@ function! codelens#lens()
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = 'echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+ ago\)/\nDate: \1/")'
+      let cmd = 'username=$(git config user.name);echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+ ago\)/\nDate: \1/" | sed "s/Not Committed Yet/$username*/")'
 
       if exists('b:codelens_func')
         let func = trim(matchstr(line, b:codelens_func))
@@ -180,3 +181,4 @@ augroup codelens
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens()
 augroup END
+
