@@ -21,7 +21,7 @@ if !exists('g:codelens_initial_wait_on_load_seconds')
   let g:codelens_initial_wait_on_load_seconds = 1
 endif
 
-function! s:unit_distance(unit, value) abort
+function! s:relative_to_seconds(unit, value) abort
   if a:unit == 'years'
     return a:value * 365 * 24 * 60 * 60 
   elseif a:unit == 'months'
@@ -51,7 +51,7 @@ function! s:most_recent(list) abort
     for p in parts
       let number = split(p, ' ')[0]
       let unit = split(p, ' ')[1]
-      let score = score + s:unit_distance(unit, number)
+      let score = score + s:relative_to_seconds(unit, number)
     endfor
 
     if score < last_score
