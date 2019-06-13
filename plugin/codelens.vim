@@ -108,9 +108,10 @@ function! s:process_git_log(job_id, data, event) dict
 
         if getline(line) =~ b:codelens_target
           if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
-            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'Comment']], {})
+            let message = matchstr(getline(line), '^\s\{1,}') . message
+            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'CodeLensReference']], {})
           else
-            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'Comment']], {})
+            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'CodeLensReference']], {})
           endif
         endif
       endif
@@ -184,5 +185,7 @@ augroup codelens
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens()
+
+  autocmd BufEnter * if exists('b:codelens_target') && s:should_bind() | hi CodeLensReference guifg=#1da374 | endif
 augroup END
 
