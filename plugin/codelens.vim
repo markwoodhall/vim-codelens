@@ -209,8 +209,8 @@ augroup codelens
   autocmd filetype python if !exists('b:codelens_target') | let b:codelens_target = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_func') | let b:codelens_func = '\(\s\{1}\)\(def\)\@!\(\w\{1,}\)' | endif
 
-  autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource' | endif
-  autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource' | endif
+  autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource\|^output\|^data' | endif
+  autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource\|^output\|^data' | endif
 
   autocmd BufWinEnter * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens(g:codelens_initial_wait_on_load_seconds) | endif
   autocmd BufWritePost * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens(0) | endif
