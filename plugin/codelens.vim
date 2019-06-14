@@ -220,4 +220,3 @@ augroup codelens
 
   autocmd BufEnter * if exists('b:codelens_target') && s:should_bind() | hi CodeLensReference guifg=#1da374 | endif
 augroup END
-
