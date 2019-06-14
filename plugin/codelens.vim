@@ -214,8 +214,8 @@ augroup codelens
   autocmd filetype * if !s:is_handled() && !exists('b:codelens_generic') | let b:codelens_generic = 1 | endif
 
   autocmd filetype clojure if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
-  autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
-  autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
+  autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def\|^(extend-' | endif
+  autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def^(extend-' | endif
   autocmd filetype clojure if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
   autocmd filetype vim if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
