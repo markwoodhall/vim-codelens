@@ -107,7 +107,7 @@ function! s:process_git_log(job_id, data, event) dict
 
           if g:codelens_show_references == 1
             if exists('b:codelens_func')
-              let references = parts[2]
+              let references = parts[2] - 1
               if references > 1
                 let message = message . ', ' . references . ' references' 
               elseif references == 1
@@ -118,7 +118,7 @@ function! s:process_git_log(job_id, data, event) dict
 
           if g:codelens_show_tests == 1
             if exists('b:codelens_func')
-              let tests = parts[3]
+              let tests = parts[3] - 1
               if tests > 1
                 let message = message . ', ' . tests . ' tests' 
               elseif tests == 1
@@ -167,15 +167,12 @@ function! codelens#lens(wait_seconds)
       if exists('b:codelens_func')
         let func = trim(matchstr(line, b:codelens_func))
 
-        let clean_line = substitute(line, '[', '\\[', 'g')
-        let clean_line = substitute(clean_line, ']', '\\]', 'g')
-
         if g:codelens_show_references == 1
-          let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | wc -l)'
+          let cmd = cmd . '#$(git grep --fixed-strings "'.func.'" | wc -l)'
         endif
 
         if g:codelens_show_tests == 1
-          let cmd = cmd . '#$(git grep --not -e "'. clean_line .'" --and -e "'.func.'" | grep "test/\|tests/" | wc -l)'
+          let cmd = cmd . '#$(git grep --fixed-strings "'.func.'" | grep "test/\|tests/" | wc -l)'
         endif
       endif
       let cmd = cmd . ';'
