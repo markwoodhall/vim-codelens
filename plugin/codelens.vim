@@ -134,13 +134,11 @@ function! s:process_git_log(job_id, data, event) dict
 
         let line = parts[0]
 
-        if getline(line) =~ b:codelens_target
-          if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
-            let message = matchstr(getline(line), '^\s\{1,}') . message
-            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'CodeLensReference']], {})
-          elseif g:codelens_allow_same_line == 1
-            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'CodeLensReference']], {})
-          endif
+        if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
+          let message = matchstr(getline(line), '^\s\{1,}') . message
+          silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'CodeLensReference']], {})
+        elseif g:codelens_allow_same_line == 1
+          silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'CodeLensReference']], {})
         endif
       endif
     endif
@@ -152,15 +150,16 @@ function! codelens#lens(wait_seconds)
   call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   let num = 1
   let cmd = 'sleep ' . a:wait_seconds . ';'
-  for line in getline(1, line('$'))
-    if line =~ b:codelens_target
-      let s:callbacks = {
-      \ 'on_stdout': function('s:process_git_log')
-      \ }
 
+  let s:callbacks = {
+  \ 'on_stdout': function('s:process_git_log')
+  \ }
+
+  for line in getline(1, line('$'))
+    if (b:codelens_generic == 1 && num == 1) || (exists('b:codelens_target') && line =~ b:codelens_target)
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
-        if end_line =~ b:codelens_scope_end
+        if (b:codelens_generic == 1 &&  num_end_line == line('$')) || (exists('b:codelens_target') && end_line =~ b:codelens_target)
           let num_end_line = num_end_line - 2
           break
         endif
@@ -191,36 +190,49 @@ function! s:should_bind()
   return status !~ 'fatal: not a git repository'
 endfunction
 
+function! s:is_handled()
+  return &ft ==# 'clojure' || &ft ==# 'vim' || &ft ==# 'terraform' || &ft ==# 'python' || &ft ==# 'sql' || &ft ==# 'javascript'
+endfunction
+
 augroup codelens
   autocmd!
+
+  autocmd filetype * if !s:is_handled() && !exists('b:codelens_generic') | let b:codelens_generic = 1 | endif
+
+  autocmd filetype clojure if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
   autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(def\|^(ns\|^(deftest\|^(\w\{1,}\/def' | endif
   autocmd filetype clojure if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
+  autocmd filetype vim if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function!\|^augroup' | endif
   autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!\|\(augroup\s\)\(END\)\@!' | endif
   autocmd filetype vim if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\W\{0,}\w\{1,}' | endif
 
+  autocmd filetype javascript if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype javascript if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_target') | let b:codelens_target = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\w\{1,}' | endif
 
+  autocmd filetype sql if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype sql if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '--\s:name' | endif
   autocmd filetype sql if !exists('b:codelens_target') | let b:codelens_target = '--\s:name' | endif
   autocmd filetype sql if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
+  autocmd filetype python if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype python if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_target') | let b:codelens_target = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_func') | let b:codelens_func = '\(\s\{1}\)\(def\)\@!\(\w\{1,}\)' | endif
 
+  autocmd filetype terraform if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource\|^output\|^data\|^provider' | endif
   autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource\|^output\|^data\|^provider' | endif
 
-  autocmd BufWinEnter * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens(g:codelens_initial_wait_on_load_seconds) | endif
-  autocmd BufWritePost * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens(0) | endif
+  autocmd BufWinEnter * if g:codelens_auto == 1 && (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | silent! call codelens#lens(g:codelens_initial_wait_on_load_seconds) | endif
+  autocmd BufWritePost * if g:codelens_auto == 1 && (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | silent! call codelens#lens(0) | endif
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens(0)
 
-  autocmd BufEnter * if exists('b:codelens_target') && s:should_bind() | hi CodeLensReference guifg=#1da374 | endif
+  autocmd BufEnter * if (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | hi CodeLensReference guifg=#1da374 | endif
 augroup END
