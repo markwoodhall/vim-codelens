@@ -13,7 +13,7 @@ image::https://i.imgur.com/OyIStFs.png[screenshot]
  
 == Features
 
-The features prodived by codelens varies based on the `filetype` of the current buffer. The basic features are as follow:
+The features provided by codelens varies based on the `filetype` of the current buffer. The basic features are as follow:
 
 1. Provides the author name and date of most recent git modification at the top of the current file
 
