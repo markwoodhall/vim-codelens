@@ -21,6 +21,14 @@ if !exists('g:codelens_initial_wait_on_load_seconds')
   let g:codelens_initial_wait_on_load_seconds = 1
 endif
 
+if !exists('g:codelens_fg_colour')
+  let g:codelens_fg_colour = '#1da374'
+endif
+
+if !exists('g:codelens_bg_colour')
+  let g:codelens_bg_colour = '#292D33'
+endif
+
 if !exists('g:codelens_allow_same_line')
   let g:codelens_allow_same_line = 1
 endif
@@ -47,20 +55,22 @@ function! s:most_recent(list) abort
   let recent = ''
   let last_score = 100 * 365 * 24 * 60 * 60
   for e in a:list
-    let date = split(e, 'Date:')[1]
-    let date = trim(date)
-    let parts = split(date, ',')
-    let score = 0
+    if len(split(e, 'Date:')) > 1
+      let date = split(e, 'Date:')[1]
+      let date = trim(date)
+      let parts = split(date, ',')
+      let score = 0
 
-    for p in parts
-      let number = split(p, ' ')[0]
-      let unit = split(p, ' ')[1]
-      let score = score + s:relative_to_seconds(unit, number)
-    endfor
+      for p in parts
+        let number = split(p, ' ')[0]
+        let unit = split(p, ' ')[1]
+        let score = score + s:relative_to_seconds(unit, number)
+      endfor
 
-    if score < last_score
-      let last_score = score
-      let recent = join(split(date, ' ')[0:-2], ' ') . ' by ' . trim(split(e, 'Date:')[0])
+      if score < last_score
+        let last_score = score
+        let recent = join(split(date, ' ')[0:-2], ' ') . ' by ' . trim(split(e, 'Date:')[0])
+      endif
     endif
   endfor
   return recent
@@ -109,24 +119,28 @@ function! s:process_git_log(job_id, data, event) dict
             let message = message . ' and ' . author_count . ' others'
           endif
 
-          if g:codelens_show_references == 1
-            if exists('b:codelens_func')
-              let references = parts[2] - 1
-              if references > 1
-                let message = message . ', ' . references . ' references'
-              elseif references == 1
-                let message = message . ', ' . references . ' reference'
+          if len(parts) > 2
+            if g:codelens_show_references == 1
+              if exists('b:codelens_func')
+                let references = parts[2] - 1
+                if references > 1
+                  let message = message . ', ' . references . ' references'
+                elseif references == 1
+                  let message = message . ', ' . references . ' reference'
+                endif
               endif
             endif
           endif
 
-          if g:codelens_show_tests == 1
-            if exists('b:codelens_func')
-              let tests = parts[3] - 1
-              if tests > 1
-                let message = message . ', ' . tests . ' tests'
-              elseif tests == 1
-                let message = message . ', ' . tests . ' test'
+          if len(parts) > 3
+            if g:codelens_show_tests == 1
+              if exists('b:codelens_func')
+                let tests = parts[3] - 1
+                if tests > 1
+                  let message = message . ', ' . tests . ' tests'
+                elseif tests == 1
+                  let message = message . ', ' . tests . ' test'
+                endif
               endif
             endif
           endif
@@ -234,5 +248,5 @@ augroup codelens
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens(0)
 
-  autocmd BufEnter * if (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | hi CodeLensReference guifg=#1da374 | endif
+  autocmd BufEnter * if (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | execute 'hi CodeLensReference guifg=' . g:codelens_fg_colour . ' guibg=' . g:codelens_bg_colour | endif
 augroup END

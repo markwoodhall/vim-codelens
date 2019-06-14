@@ -1,0 +1,65 @@
+== Warning
+
+This is a very, very rough proof of concept, it might break, or produce errors that interrupt your workflow. It is currently working well for me.
+
+== Purpose
+
+vim-codelens is a neovim plugin somewhat inspired by Visual Studio codelens.
+
+At the moment it has very few features. The main one being to provide virtualtext against a function definition indicating when
+it was last modified, by who, and how many people have edited it.
+
+image::https://i.imgur.com/OyIStFs.png[screenshot]
+ 
+== Features
+
+The features prodived by codelens varies based on the `filetype` of the current buffer. The basic features are as follow:
+
+1. Provides the author name and date of most recent git modification at the top of the current file
+
+There are additional features for Clojure, vim, javascript, terraform, python, and hug sql file types.
+
+1. Provides the author name and date of most recent git modification for the current function, class, namespace etc.
+2. Provides a count of the number of references to the current function, class, namespace etc.
+3. Provides a count of the number of tests of the current function, class, namespace etc.
+
+== Installation
+
+[source,shell]
+Plug 'markwoodhall/vim-codelens'
+
+== Configuration
+[source,shell]
+let g:codelens_auto = 1
+
+Turns on or off the ability to generate codelens data when the buffer is read or written. If you prefer to
+toggle this off then you can manually run the `:CodeLens` command.
+
+[source,shell]
+let g:codelens_bg_colour='#1da374'
+
+Allows customisation of the background colour used when rendering codelens data.
+
+[source,shell]
+let g:codelens_fg_colour='#292D33'
+
+Allows customisation of the foreground colour used when rendering codelens data.
+
+[source,shell]
+let g:codelens_show_references = 1
+
+Turns on or off the ability to count the number of references to the current codelens target using `git grep`.
+
+[source,shell]
+let g:codelens_show_tests = 1
+
+Turns on or off the ability to count the number of tests on the current codelens target using `git grep`.
+
+[source,shell]
+let g:codelens_allow_same_line = 1
+
+Turns on or off the ability to render code lens data on the same line as the target if there is no whitespace above the target.
+
+== License
+
+Copyright © Mark Woodhall. Distributed under the same terms as Vim itself. See `:help license`
