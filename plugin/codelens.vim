@@ -173,13 +173,12 @@ function! codelens#lens(wait_seconds)
     if (b:codelens_generic == 1 && num == 1) || (exists('b:codelens_target') && line =~ b:codelens_target)
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
-        if (b:codelens_generic == 1 &&  num_end_line == line('$')) || (exists('b:codelens_target') && end_line =~ b:codelens_target)
-          let num_end_line = num_end_line - 2
+        if (b:codelens_generic == 1 && num_end_line == line('$')) || (exists('b:codelens_target') && end_line =~ b:codelens_target)
           break
         endif
         let num_end_line = num_end_line + 1
       endfor
-      let cmd = cmd . 'username=$(git config user.name);echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . num_end_line . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+.* ago\)/\nDate: \1/" | sed "s/Not Committed Yet/$username*/")'
+      let cmd = cmd . 'username=$(git config user.name);echo "' . num . '"#$(git blame ' . filename . ' -L ' . num . ',' . (num_end_line - 1) . ' --date=relative  | cut -d "(" -f2 | cut -d ")" -f1 | sed  "s/^/Author: /" | sed "s/\([0-9]\+ [a-z]\+.* ago\)/\nDate: \1/" | sed "s/Not Committed Yet/$username*/")'
 
       if exists('b:codelens_func')
         let func = trim(matchstr(line, b:codelens_func))
