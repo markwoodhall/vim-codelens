@@ -22,7 +22,7 @@ if !exists('g:codelens_initial_wait_on_load_seconds')
 endif
 
 if !exists('g:codelens_fg_colour')
-  let g:codelens_fg_colour = '#1da374'
+  let g:codelens_fg_colour = '#444444'
 endif
 
 if !exists('g:codelens_bg_colour')
