@@ -23,7 +23,7 @@ endif
 
 function! s:relative_to_seconds(unit, value) abort
   if a:unit == 'years'
-    return a:value * 365 * 24 * 60 * 60 
+    return a:value * 365 * 24 * 60 * 60
   elseif a:unit == 'months'
     return a:value * 30 * 24 * 60 * 60
   elseif a:unit == 'weeks'
@@ -33,7 +33,7 @@ function! s:relative_to_seconds(unit, value) abort
   elseif a:unit == 'hours'
     return a:value * 60 * 60
   elseif a:unit == 'minutes'
-    return a:value * 60 
+    return a:value * 60
   elseif a:unit == 'seconds'
     return a:value
   endif
@@ -109,9 +109,9 @@ function! s:process_git_log(job_id, data, event) dict
             if exists('b:codelens_func')
               let references = parts[2] - 1
               if references > 1
-                let message = message . ', ' . references . ' references' 
+                let message = message . ', ' . references . ' references'
               elseif references == 1
-                let message = message . ', ' . references . ' reference' 
+                let message = message . ', ' . references . ' reference'
               endif
             endif
           endif
@@ -120,9 +120,9 @@ function! s:process_git_log(job_id, data, event) dict
             if exists('b:codelens_func')
               let tests = parts[3] - 1
               if tests > 1
-                let message = message . ', ' . tests . ' tests' 
+                let message = message . ', ' . tests . ' tests'
               elseif tests == 1
-                let message = message . ', ' . tests . ' test' 
+                let message = message . ', ' . tests . ' test'
               endif
             endif
           endif
@@ -200,11 +200,11 @@ augroup codelens
   autocmd filetype javascript if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_target') | let b:codelens_target = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\w\{1,}' | endif
-  
+
   autocmd filetype sql if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '--\s:name' | endif
   autocmd filetype sql if !exists('b:codelens_target') | let b:codelens_target = '--\s:name' | endif
   autocmd filetype sql if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
-  
+
   autocmd filetype python if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_target') | let b:codelens_target = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_func') | let b:codelens_func = '\(\s\{1}\)\(def\)\@!\(\w\{1,}\)' | endif
