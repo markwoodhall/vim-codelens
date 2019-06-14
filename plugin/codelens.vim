@@ -21,6 +21,10 @@ if !exists('g:codelens_initial_wait_on_load_seconds')
   let g:codelens_initial_wait_on_load_seconds = 1
 endif
 
+if !exists('g:codelens_allow_same_line')
+  let g:codelens_allow_same_line = 1
+endif
+
 function! s:relative_to_seconds(unit, value) abort
   if a:unit == 'years'
     return a:value * 365 * 24 * 60 * 60
@@ -134,7 +138,7 @@ function! s:process_git_log(job_id, data, event) dict
           if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
             let message = matchstr(getline(line), '^\s\{1,}') . message
             silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'CodeLensReference']], {})
-          else
+          elseif g:codelens_allow_same_line == 1
             silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'CodeLensReference']], {})
           endif
         endif
@@ -209,8 +213,8 @@ augroup codelens
   autocmd filetype python if !exists('b:codelens_target') | let b:codelens_target = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_func') | let b:codelens_func = '\(\s\{1}\)\(def\)\@!\(\w\{1,}\)' | endif
 
-  autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource\|^output\|^data' | endif
-  autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource\|^output\|^data' | endif
+  autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource\|^output\|^data\|^provider' | endif
+  autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource\|^output\|^data\|^provider' | endif
 
   autocmd BufWinEnter * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens(g:codelens_initial_wait_on_load_seconds) | endif
   autocmd BufWritePost * if g:codelens_auto == 1 && exists('b:codelens_target') && s:should_bind() | silent! call codelens#lens(0) | endif
