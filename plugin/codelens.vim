@@ -170,10 +170,10 @@ function! codelens#lens(wait_seconds)
   \ }
 
   for line in getline(1, line('$'))
-    if (b:codelens_generic == 1 && num == 1) || (exists('b:codelens_target') && line =~ b:codelens_target)
+    if (b:codelens_generic == 1 && num == 1) || (exists('b:codelens_scope_start') && line =~ b:codelens_scope_start)
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
-        if (b:codelens_generic == 1 && num_end_line == line('$')) || (exists('b:codelens_target') && end_line =~ b:codelens_target)
+        if (b:codelens_generic == 1 && num_end_line == line('$')) || (exists('b:codelens_scope_start') && end_line =~ b:codelens_scope_start)
           break
         endif
         let num_end_line = num_end_line + 1
@@ -213,39 +213,39 @@ augroup codelens
   autocmd filetype * if !s:is_handled() && !exists('b:codelens_generic') | let b:codelens_generic = 1 | endif
 
   autocmd filetype clojure if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
-  autocmd filetype clojure if !exists('b:codelens_target') | let b:codelens_target = '^(\w\{1,}' | endif
+  autocmd filetype clojure if !exists('b:codelens_scope_start') | let b:codelens_scope_start = '^(\w\{1,}' | endif
   autocmd filetype clojure if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^(\w\{1,}' | endif
   autocmd filetype clojure if !exists('b:codelens_func') | let b:codelens_func = '\s:\{0,}\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
   autocmd filetype vim if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype vim if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function!\|^augroup' | endif
-  autocmd filetype vim if !exists('b:codelens_target') | let b:codelens_target = '^function!\|\(augroup\s\)\(END\)\@!' | endif
+  autocmd filetype vim if !exists('b:codelens_scope_start') | let b:codelens_scope_start = '^function!\|\(augroup\s\)\(END\)\@!' | endif
   autocmd filetype vim if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\W\{0,}\w\{1,}' | endif
 
   autocmd filetype javascript if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype javascript if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^function' | endif
-  autocmd filetype javascript if !exists('b:codelens_target') | let b:codelens_target = '^function' | endif
+  autocmd filetype javascript if !exists('b:codelens_scope_start') | let b:codelens_scope_start = '^function' | endif
   autocmd filetype javascript if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}\w\{1,}' | endif
 
   autocmd filetype sql if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype sql if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '--\s:name' | endif
-  autocmd filetype sql if !exists('b:codelens_target') | let b:codelens_target = '--\s:name' | endif
+  autocmd filetype sql if !exists('b:codelens_scope_start') | let b:codelens_scope_start = '--\s:name' | endif
   autocmd filetype sql if !exists('b:codelens_func') | let b:codelens_func = '\s\w\{1,}[-.]\{0,}\w\{1,}' | endif
 
   autocmd filetype python if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype python if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^class\s\|^def\s\|\sdef\s' | endif
-  autocmd filetype python if !exists('b:codelens_target') | let b:codelens_target = '^class\s\|^def\s\|\sdef\s' | endif
+  autocmd filetype python if !exists('b:codelens_scope_start') | let b:codelens_scope_start = '^class\s\|^def\s\|\sdef\s' | endif
   autocmd filetype python if !exists('b:codelens_func') | let b:codelens_func = '\(\s\{1}\)\(def\)\@!\(\w\{1,}\)' | endif
 
   autocmd filetype terraform if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
   autocmd filetype terraform if !exists('b:codelens_scope_end') | let b:codelens_scope_end = '^module\|^resource\|^output\|^data\|^provider' | endif
-  autocmd filetype terraform if !exists('b:codelens_target') | let b:codelens_target = '^module\|^resource\|^output\|^data\|^provider' | endif
+  autocmd filetype terraform if !exists('b:codelens_scope_start') | let b:codelens_scope_start = '^module\|^resource\|^output\|^data\|^provider' | endif
 
-  autocmd BufWinEnter * if g:codelens_auto == 1 && (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | silent! call codelens#lens(g:codelens_initial_wait_on_load_seconds) | endif
-  autocmd BufWritePost * if g:codelens_auto == 1 && (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | silent! call codelens#lens(0) | endif
+  autocmd BufWinEnter * if g:codelens_auto == 1 && (exists('b:codelens_scope_start') || exists('b:codelens_generic')) && s:should_bind() | silent! call codelens#lens(g:codelens_initial_wait_on_load_seconds) | endif
+  autocmd BufWritePost * if g:codelens_auto == 1 && (exists('b:codelens_scope_start') || exists('b:codelens_generic')) && s:should_bind() | silent! call codelens#lens(0) | endif
 
   autocmd filetype * command! -buffer CodelensClear :call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   autocmd filetype * command! -buffer Codelens :call codelens#lens(0)
 
-  autocmd BufEnter * if (exists('b:codelens_target') || exists('b:codelens_generic')) && s:should_bind() | execute 'hi CodeLensReference guifg=' . g:codelens_fg_colour . ' guibg=' . g:codelens_bg_colour | endif
+  autocmd BufEnter * if (exists('b:codelens_scope_start') || exists('b:codelens_generic')) && s:should_bind() | execute 'hi CodeLensReference guifg=' . g:codelens_fg_colour . ' guibg=' . g:codelens_bg_colour | endif
 augroup END
