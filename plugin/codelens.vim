@@ -34,19 +34,19 @@ if !exists('g:codelens_allow_same_line')
 endif
 
 function! s:relative_to_seconds(unit, value) abort
-  if a:unit == 'years'
+  if a:unit == 'years' || a:unit == 'year'
     return a:value * 365 * 24 * 60 * 60
-  elseif a:unit == 'months'
+  elseif a:unit == 'months' || a:unit == 'month'
     return a:value * 30 * 24 * 60 * 60
-  elseif a:unit == 'weeks'
+  elseif a:unit == 'weeks' || a:unit == 'week'
     return a:value * 7 * 24 * 60 * 60
-  elseif a:unit == 'days'
+  elseif a:unit == 'days' || a:unit == 'day'
     return a:value * 24 * 60 * 60
-  elseif a:unit == 'hours'
+  elseif a:unit == 'hours' || a:unit == 'hour'
     return a:value * 60 * 60
   elseif a:unit == 'minutes'
-    return a:value * 60
-  elseif a:unit == 'seconds'
+    return a:value * 60 || a:unit == 'minute'
+  elseif a:unit == 'seconds' || a:unit == 'second'
     return a:value
   endif
 endfunction
@@ -164,6 +164,7 @@ function! codelens#lens(wait_seconds)
   call nvim_buf_clear_highlight(nvim_get_current_buf(), g:codelens_namespace, 0, -1)
   let num = 1
   let cmd = 'sleep ' . a:wait_seconds . ';'
+  let b:codelens_did_match = 0
 
   let s:callbacks = {
   \ 'on_stdout': function('s:process_git_log')
