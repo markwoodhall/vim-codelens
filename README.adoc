@@ -32,7 +32,7 @@ Plug 'markwoodhall/vim-codelens'
 [source,shell]
 let g:codelens_auto = 1
 
-Turns on or off the ability to generate codelens data when the buffer is read or written. If you prefer to
+Turns on or off the ability to generate codelens data on bugger read or write. If you prefer to
 toggle this off then you can manually run the `:Codelens` command.
 
 [source,shell]
