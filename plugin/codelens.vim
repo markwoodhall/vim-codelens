@@ -120,7 +120,7 @@ function! s:process_git_log(job_id, data, event) dict
           endif
 
           if len(parts) > 2
-            if g:codelens_show_references == 1
+            if g:codelens_show_references == 1 && b:codelens_did_match 
               if exists('b:codelens_func')
                 let references = parts[2] - 1
                 if references > 1
@@ -133,7 +133,7 @@ function! s:process_git_log(job_id, data, event) dict
           endif
 
           if len(parts) > 3
-            if g:codelens_show_tests == 1
+            if g:codelens_show_tests == 1 && b:codelens_did_match 
               if exists('b:codelens_func')
                 let tests = parts[3] - 1
                 if tests > 1
@@ -170,7 +170,9 @@ function! codelens#lens(wait_seconds)
   \ }
 
   for line in getline(1, line('$'))
-    if (b:codelens_generic == 1 && num == 1) || (exists('b:codelens_scope_start') && line =~ b:codelens_scope_start)
+    let is_match = (exists('b:codelens_scope_start') && line =~ b:codelens_scope_start)
+    if (b:codelens_generic == 1 && num == 1) || (is_match || num == 1)
+      let b:codelens_did_match = is_match
       let num_end_line = num + 1
       for end_line in getline(num_end_line, line('$'))
         if (b:codelens_generic == 1 && num_end_line == line('$')) || (exists('b:codelens_scope_start') && end_line =~ b:codelens_scope_start)
