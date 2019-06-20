@@ -203,7 +203,7 @@ endfunction
 
 function! s:should_bind()
   let status = system('git status')
-  return status !~ 'fatal: not a git repository' && &buftype != 'nofile'
+  return status !~ 'fatal: not a git repository' && &buftype != 'nofile' && &buftype != 'terminal'
 endfunction
 
 function! s:is_handled()
