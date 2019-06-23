@@ -25,6 +25,8 @@ There are additional features for Clojure, vim, javascript, terraform, python, a
 
 == Installation
 
+Install using your favourite package manager, I use vim-plug. 
+
 [source,shell]
 Plug 'markwoodhall/vim-codelens'
 
