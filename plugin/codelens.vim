@@ -90,69 +90,71 @@ function! s:unique(list) abort
 endfunction
 
 function! s:process_git_log(job_id, data, event) dict
-  if a:event == 'stdout'
-    let data = a:data[0:-2]
-    if len(data) >= 1
-      let parts = split(data[0], '#')
+  if exists('b:codelens_loaded')
+    if a:event == 'stdout'
+      let data = a:data[0:-2]
+      if len(data) >= 1
+        let parts = split(data[0], '#')
 
-      if len(parts) > 1
-        let authors = split(parts[1], 'Author:')
+        if len(parts) > 1
+          let authors = split(parts[1], 'Author:')
 
-        let named_authors = []
-        for a in authors
-          let auth = split(a, 'Date:')[0]
-          let named_authors += [trim(auth)]
-        endfor
+          let named_authors = []
+          for a in authors
+            let auth = split(a, 'Date:')[0]
+            let named_authors += [trim(auth)]
+          endfor
 
-        let author_count = len(s:unique(named_authors)) - 1
+          let author_count = len(s:unique(named_authors)) - 1
 
-        let message = ''
-        if len(authors) > 0
+          let message = ''
+          if len(authors) > 0
 
-          let author = s:most_recent(authors)
+            let author = s:most_recent(authors)
 
-          let message = author
+            let message = author
 
-          if author_count == 1
-            let message = message . ' and 1 other'
-          elseif author_count > 1
-            let message = message . ' and ' . author_count . ' others'
-          endif
+            if author_count == 1
+              let message = message . ' and 1 other'
+            elseif author_count > 1
+              let message = message . ' and ' . author_count . ' others'
+            endif
 
-          if len(parts) > 2
-            if g:codelens_show_references == 1 && b:codelens_did_match
-              if exists('b:codelens_func')
-                let references = parts[2] - 1
-                if references > 1
-                  let message = message . ', ' . references . ' references'
-                elseif references == 1
-                  let message = message . ', ' . references . ' reference'
+            if len(parts) > 2
+              if g:codelens_show_references == 1 && exists('b:codelens_did_match') && b:codelens_did_match
+                if exists('b:codelens_func')
+                  let references = parts[2] - 1
+                  if references > 1
+                    let message = message . ', ' . references . ' references'
+                  elseif references == 1
+                    let message = message . ', ' . references . ' reference'
+                  endif
+                endif
+              endif
+            endif
+
+            if len(parts) > 3
+              if g:codelens_show_tests == 1 && exists('b:codelens_did_match') && b:codelens_did_match
+                if exists('b:codelens_func')
+                  let tests = parts[3] - 1
+                  if tests > 1
+                    let message = message . ', ' . tests . ' tests'
+                  elseif tests == 1
+                    let message = message . ', ' . tests . ' test'
+                  endif
                 endif
               endif
             endif
           endif
 
-          if len(parts) > 3
-            if g:codelens_show_tests == 1 && b:codelens_did_match
-              if exists('b:codelens_func')
-                let tests = parts[3] - 1
-                if tests > 1
-                  let message = message . ', ' . tests . ' tests'
-                elseif tests == 1
-                  let message = message . ', ' . tests . ' test'
-                endif
-              endif
-            endif
+          let line = parts[0]
+
+          if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
+            let message = matchstr(getline(line), '^\s\{1,}') . message
+            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'CodeLensReference']], {})
+          elseif g:codelens_allow_same_line == 1
+            silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'CodeLensReference']], {})
           endif
-        endif
-
-        let line = parts[0]
-
-        if line > 1 && substitute(getline(line-1), '\s', '', 'g') == ''
-          let message = matchstr(getline(line), '^\s\{1,}') . message
-          silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-2, [[message, 'CodeLensReference']], {})
-        elseif g:codelens_allow_same_line == 1
-          silent! call nvim_buf_set_virtual_text(nvim_get_current_buf(), g:codelens_namespace, line-1, [[message, 'CodeLensReference']], {})
         endif
       endif
     endif
@@ -213,6 +215,7 @@ endfunction
 augroup codelens
   autocmd!
 
+  autocmd filetype * if s:should_bind() && !exists('b:codelens_loaded') | let b:codelens_loaded = 1 | endif
   autocmd filetype * if !s:is_handled() && !exists('b:codelens_generic') | let b:codelens_generic = 1 | endif
 
   autocmd filetype clojure if !exists('b:codelens_generic') | let b:codelens_generic = 0 | endif
